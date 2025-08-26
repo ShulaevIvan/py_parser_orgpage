@@ -14,17 +14,33 @@ def parse_company_info(company_url):
     wait = WebDriverWait(driver, 10)
     wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, '.problem-modal-for-company')))
     company_information_wrap = driver.find_element(By.CSS_SELECTOR, '.company-information__row')
-    company_address_main = driver.find_element(By.CSS_SELECTOR, '.main-address.company-information__address-title').find_element(By.TAG_NAME, 'span')
-    company_address_region = driver.find_element(By.CSS_SELECTOR, '.company-information__address-text').find_elements(By.TAG_NAME, 'span')
+    # company_address_main = driver.find_element(By.CSS_SELECTOR, '.main-address.company-information__address-title').find_element(By.TAG_NAME, 'span')
+    # company_address_region = driver.find_element(By.CSS_SELECTOR, '.company-information__address-text').find_elements(By.TAG_NAME, 'span')
     company_information_site = driver.find_element(By.CSS_SELECTOR, '.company-information__site-text')
 
     phone_tag = company_information_wrap.find_element(By.CSS_SELECTOR, '.company-information__phone')
-    site_tag = company_information_site.find_element(By.TAG_NAME, 'p').find_element(By.TAG_NAME, 'a')
-    email_tag = company_information_site.find_element(By.CSS_SELECTOR, '.email').find_element(By.TAG_NAME, 'a')
+    # site_tag = company_information_site.find_element(By.TAG_NAME, 'p')
+    # email_tag = company_information_site.find_element(By.CSS_SELECTOR, '.email')
     phone = ''
     site = ''
     address = ''
     email = ''
+
+
+    if phone_tag:
+        phone = phone_tag.text
+    # if site_tag:
+    #     site: site_tag.find_element(By.TAG_NAME, 'a').get_attribute('href')
+    # if email_tag:
+    #     email = email_tag.find_element(By.TAG_NAME, 'a')
+    # if site_tag:
+    #     site = site_tag.get_attribute('href')
+    # if email_tag:
+    #     email = email_tag.text
+    # if company_address_main:
+    #     address = company_address_main.text
+    # if len(company_address_region) > 0 and address:
+    #     address = f'{company_address_main} ' + ' '.join([str(i.text) for i in company_address_region])
 
 
     company_data = {
@@ -33,4 +49,5 @@ def parse_company_info(company_url):
         'email': email,
         'address': address
     }
+    driver.close()
     return company_data

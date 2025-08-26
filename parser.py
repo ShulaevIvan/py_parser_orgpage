@@ -32,8 +32,7 @@ if __name__ == "__main__":
         wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, '.gradient.next')))
         next_page_btn = driver.find_element(By.CSS_SELECTOR, '.gradient.next')
         next_page_btn.click()
-    # print(company_list)
-    # first_c = parse_company_info(company_list[0]['page_url'])
+
     for company_data in company_list:
         company_data['contact_data'] = parse_company_info(company_data['page_url'])
 
