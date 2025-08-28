@@ -113,5 +113,16 @@ class Parser:
         
         target_folder = f'{os.getcwd()}/output'
         file_name = f'{target_folder}/companies.json'
+        if not os.path.exists(target_folder):
+            os.mkdir(target_folder)
+        if not os.path.exists(file_name):
+            with open(file_name, 'w+', encoding='utf-8') as json_file:
+                json.dump({'company_list': []}, json_file, ensure_ascii=False, indent=4)
+
+        with open(file_name, 'r+', encoding='utf-8') as json_file:
+            json_data = json.load(json_file)
+            json_data['company_list'].append(company_info)
+            json_file.seek(0)
+            json.dump(json_data, json_file, ensure_ascii=False, indent=4)
         
 
