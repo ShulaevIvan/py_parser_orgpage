@@ -21,7 +21,8 @@ parser_config = {
     'categories': [
         {
             'name': 'Красота и здоровье',
-            'url': 'krasota-i-zdorove'
+            'url': 'krasota-i-zdorove',
+            'key_number': 1
         }
     ],
 }
