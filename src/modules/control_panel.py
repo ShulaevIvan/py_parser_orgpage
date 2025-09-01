@@ -5,6 +5,7 @@ class ControlPanel:
 
 
     def __init__(self):
+        self.main_url = 'https://www.orgpage.ru/'
         selected_region = None,
         selected_city = None,
         selected_category = None
@@ -39,6 +40,7 @@ class ControlPanel:
             except ValueError:
                 self.get_parametrs()
                 break
+
 
     def start_parsing(self):
         print(self.selected_category)
