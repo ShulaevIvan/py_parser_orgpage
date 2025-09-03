@@ -10,5 +10,5 @@ from selenium.webdriver.support import expected_conditions as EC
 
 if __name__ == "__main__":
     control_panel = ControlPanel()
-    # parser = Parser()
-    # parser.parse_page()
+    parser = Parser()
+    parser.parse_page(control_panel.target_url)

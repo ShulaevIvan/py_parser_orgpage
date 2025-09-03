@@ -5,10 +5,11 @@ class ControlPanel:
 
 
     def __init__(self):
-        self.main_url = 'https://www.orgpage.ru/'
-        selected_region = None,
-        selected_city = None,
-        selected_category = None
+        self.main_url = 'https://www.orgpage.ru'
+        self.selected_region = None,
+        self.selected_city = None,
+        self.selected_category = None
+        self.target_url = None
         
         self.get_parametrs()
 
@@ -21,20 +22,22 @@ class ControlPanel:
         category_number = ''
 
         while True:
-            if (region_number and int(region_number)) and category_number and int(category_number):
+            if self.selected_region and self.selected_category:
                 self.start_parsing()
                 break
             try:
                 print(region_welcome_message)
-                region_number = int(input('\nВведите номер региона:'))
+                region_number = int(input('\nВведите номер региона: '))
                 check_region_is_avalible = list(filter(lambda region: (region['key_number'] == region_number) , parser_config['regions']))
                 if region_number and int(region_number) and len(check_region_is_avalible) > 0:
-                    self.selected_region = int(region_number)
+                    self.selected_region = check_region_is_avalible[0]['url']
                     print(category_welcome_message)
-                    category_number = int(input('\nВведите номер категории:'))
+                    category_number = int(input('\nВведите номер категории: '))
                     check_category_is_avalible = list(filter(lambda category: (category['key_number'] == category_number) , parser_config['categories']))
                     if category_number and int(category_number) and len(check_category_is_avalible) > 0:
-                        self.selected_category = int(category_number)
+                        self.selected_category = check_category_is_avalible[0]['url']
+                    else:
+                        continue
                 else:
                     continue
             except ValueError:
@@ -43,7 +46,8 @@ class ControlPanel:
 
 
     def start_parsing(self):
-        print(self.selected_category)
-        print(self.selected_region)
+        self.target_url = f'{self.main_url}/{self.selected_region}/{self.selected_category}'
+
+        
 
     

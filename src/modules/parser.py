@@ -2,11 +2,13 @@ from pprint import pprint
 import re
 import os
 import json
+from tqdm import tqdm
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import NoSuchElementException
 
 
 class Parser:
@@ -19,16 +21,18 @@ class Parser:
         self.driver = webdriver.Chrome(options=self.options)
         self.company_list = []
         self.start_index = 0
+        self.max_pages = 5
+        self.start_page_num = 1
         
 
 
-    def parse_page(self):
-        self.driver.get('https://www.orgpage.ru/moskva/krasota-i-zdorove/')
+    def parse_page(self, url):
+        self.driver.get(f'{url}')
         main_container = self.driver.find_element(By.ID, 'rubricator-result')
         next_btn_wrap = self.driver.find_element(By.CSS_SELECTOR, '.rubricator-paging')
         wait = WebDriverWait(self.driver, 3)
 
-        for i in range(1):
+        for i in tqdm(range(self.max_pages), desc='Pages'):
             company_items = self.driver.find_elements(By.CSS_SELECTOR, '.object-item.similar-item')
             company_data = self.parse_next_page(company_items, self.start_index)
             self.company_list = self.company_list + company_data
@@ -37,7 +41,7 @@ class Parser:
             next_page_btn = self.driver.find_element(By.CSS_SELECTOR, '.gradient.next')
             next_page_btn.click()
 
-        for company_data in self.company_list:
+        for company_data in tqdm(self.company_list, desc='Companies'):
             company_data['contact_data'] = self.parse_company_info(company_data['page_url'])
     
     def parse_next_page(self, company_elements, index_num):
@@ -71,12 +75,13 @@ class Parser:
         self.driver.get(company_url)
         wait = WebDriverWait(self.driver, 3)
         wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, '.problem-modal-for-company')))
-        company_information_wrap = self.driver.find_element(By.CSS_SELECTOR, '.company-information__row')
-        company_information_site = self.driver.find_element(By.CSS_SELECTOR, '.company-information__site-text')
-        company_address_main = self.driver.find_element(By.CSS_SELECTOR, '.main-address.company-information__address-title')
-        company_address_region = self.driver.find_element(By.CSS_SELECTOR, '.company-information__address-text')
+        company_information_wrap = self.check_element_is_exists(self.driver, By.CSS_SELECTOR, '.company-information__row')
+        if company_information_wrap:
+            company_information_site = self.check_element_is_exists(company_information_wrap, By.CSS_SELECTOR, '.company-information__site-text')
+            company_address_main = self.check_element_is_exists(company_information_wrap, By.CSS_SELECTOR, '.main-address.company-information__address-title')
+            company_address_region = self.check_element_is_exists(company_information_wrap, By.CSS_SELECTOR, '.company-information__address-text')
 
-        phone_tag = company_information_wrap.find_element(By.CSS_SELECTOR, '.company-information__phone')
+        phone_tag = self.check_element_is_exists(company_information_wrap, By.CSS_SELECTOR, '.company-information__phone')
         phone = ''
         site = ''
         address = ''
@@ -90,15 +95,19 @@ class Parser:
                     site = web_contacts[i].text
                 else:
                     email = web_contacts[i].text
+            
 
-        if phone_tag:
-            phone = phone_tag.text
-        if company_information_site and company_information_site.find_element(By.TAG_NAME, 'p'):
-            site = company_information_site.find_element(By.TAG_NAME, 'p').find_element(By.TAG_NAME, 'a').get_attribute('href')
-        if company_address_region and company_address_main:
-            company_address_span = company_address_region.find_elements(By.TAG_NAME, 'span')
-            company_street = company_address_main.find_element(By.TAG_NAME, 'span').text
-            address = f'{company_street} ' + ' '.join([str(i.text) for i in company_address_span])
+            if phone_tag:
+                phone = phone_tag.text
+            if company_information_site:
+                site = self.check_element_is_exists(company_information_site, By.TAG_NAME, 'p')
+                if site:
+                    site = site.find_element(By.TAG_NAME, 'a').get_attribute('href')
+            if company_address_region and company_address_main:
+                company_address_span = self.check_element_is_exists(company_address_region, By.TAG_NAME, 'span', many=True)
+                company_street = self.check_element_is_exists(company_address_region, By.TAG_NAME, 'span')
+                if company_address_span and company_street:
+                    address = f'{company_street.text} ' + ' '.join([str(i.text) for i in company_address_span])
 
         company_data = {
             'phone': phone,
@@ -108,6 +117,18 @@ class Parser:
         }
         self.save_to_json(company_data)
         return company_data
+    
+    def check_element_is_exists(self, start_element, selector_type, selector_name, many=False):
+        try:
+            if not start_element:
+                start_element = self.driver
+            if not many:
+                element = start_element.find_element(selector_type, selector_name)
+            else:
+                element = start_element.find_elements(selector_type, selector_name)
+        except NoSuchElementException:
+            return False
+        return element
     
     def save_to_json(self, company_info):
         
